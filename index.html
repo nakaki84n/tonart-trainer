@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>調と和音のれんしゅう</title>
+<style>
+:root{
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#23211d; --sub:#6d675c; --line:#d9d2c3;
+  --accent:#1f5f8b; --accent-ink:#fff; --accent-soft:#d8e8f3;
+  --good:#2e7d4f; --good-soft:#dcefe2; --bad:#b3402e; --bad-soft:#f6dfda;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#191a1c; --card:#232528; --ink:#ecebe6; --sub:#a09d94; --line:#3a3d42;
+    --accent:#6db3e0; --accent-ink:#10202b; --accent-soft:#27404f;
+    --good:#6cc48d; --good-soft:#1f3a2a; --bad:#ee8b7a; --bad-soft:#44241f;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;line-height:1.6}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+header{max-width:680px;margin:0 auto;padding:16px 16px 4px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+header h1{font-size:1.15rem;margin:0;letter-spacing:.04em}
+main{max-width:680px;margin:0 auto;padding:8px 16px 48px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.sub{color:var(--sub);font-size:.88rem}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.85rem}
+.link{background:none;border:0;padding:6px 0;color:var(--sub);font-size:.9rem}
+.primary{display:block;width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;
+  background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:1.05rem}
+.secondary{display:block;width:100%;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+
+/* home */
+.modes{display:grid;gap:12px;grid-template-columns:1fr 1fr;margin-top:8px}
+@media (max-width:520px){.modes{grid-template-columns:1fr}}
+.mode{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.mode:hover{border-color:var(--accent)}
+.mode .tag{font-size:.75rem;color:var(--accent);font-weight:700;letter-spacing:.08em}
+.mode h2{font-size:1.05rem;margin:2px 0 4px}
+.mode p{margin:0}
+.mode .acc{margin-top:8px;font-size:.8rem;color:var(--sub);font-variant-numeric:tabular-nums}
+h3.sec{font-size:.85rem;color:var(--sub);margin:22px 0 6px;font-weight:600;letter-spacing:.06em}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:6px 0}
+.opt input{width:20px;height:20px;margin-top:3px;accent-color:var(--accent)}
+
+/* quiz */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.9rem}
+.bar .prog{font-variant-numeric:tabular-nums;color:var(--sub)}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin:4px 0 12px}
+.progress i{display:block;height:100%;background:var(--accent)}
+.q{text-align:center}
+.q .big{font-size:2.3rem;font-weight:700;letter-spacing:.02em;line-height:1.3;margin:6px 0}
+.q .ask{margin:4px 0 0}
+.q .ask b{color:var(--accent)}
+svg.staff{width:min(100%,340px);height:auto;display:block;margin:0 auto;color:var(--ink)}
+#a{margin-top:12px}
+#a.locked{pointer-events:none}
+#ans{width:100%;padding:12px;font-size:1.3rem;text-align:center;border:2px solid var(--line);border-radius:10px;background:var(--bg)}
+#ans:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:6px;margin-top:8px}
+.row button{flex:1;min-width:0;padding:11px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-weight:600;font-size:1rem;position:relative}
+.row button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.row button:disabled{opacity:.35}
+.row button .ord{position:absolute;top:1px;right:5px;font-size:.65rem;font-weight:400}
+.rowlabel{font-size:.78rem;color:var(--sub);margin:10px 0 -4px}
+.count{text-align:center;font-size:1.2rem;font-weight:700;margin:10px 0 0;min-height:1.6em;font-variant-numeric:tabular-nums}
+.hint{color:var(--bad);font-size:.88rem;margin:8px 0 0;min-height:1.4em;text-align:center}
+
+/* piano */
+.piano{position:relative;display:flex;height:160px;user-select:none;-webkit-user-select:none;max-width:600px;margin:0 auto}
+.piano button{padding:0;border:1px solid #777;-webkit-tap-highlight-color:transparent}
+.wk{flex:1;background:#fff;border-radius:0 0 6px 6px;margin-right:-1px;position:relative}
+.wk span{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:.7rem;color:#888}
+.bk{position:absolute;top:0;width:5.4%;height:60%;background:#222;border-radius:0 0 4px 4px;transform:translateX(-50%);z-index:2}
+.wk.sel{background:#9ccbea}.bk.sel{background:#2f86c0}
+.wk.good{background:#9fdcb6}.bk.good{background:#2e9a5c}
+.wk.bad{background:#f2b1a6}.bk.bad{background:#c2513e}
+
+/* feedback */
+.fb{margin-top:12px;border-radius:12px;padding:12px 14px;border:1px solid}
+.fb.ok{background:var(--good-soft);border-color:var(--good)}
+.fb.ng{background:var(--bad-soft);border-color:var(--bad)}
+.fb .mark{font-weight:700;font-size:1.1rem}
+.fb.ok .mark{color:var(--good)}.fb.ng .mark{color:var(--bad)}
+.fb p{margin:2px 0}
+.fb svg.staff{width:min(100%,240px);margin:6px 0 0}
+.fb .ghost{margin-top:6px}
+
+/* result */
+.score{font-size:3rem;font-weight:700;text-align:center;line-height:1.2;font-variant-numeric:tabular-nums}
+.score small{font-size:1.1rem;color:var(--sub);font-weight:400}
+.miss{margin:10px 0 0;padding:0;list-style:none}
+.miss li{padding:8px 0;border-top:1px solid var(--line);font-size:.95rem}
+</style>
+</head>
+<body>
+<header>
+  <h1>調と和音のれんしゅう</h1>
+  <button class="ghost" id="mute" aria-pressed="false">音 オン</button>
+</header>
+<main id="app"></main>
+
+<script>
+'use strict';
+/* ========== 音名・調・和音のデータ ========== */
+const LETTERS = ['C','D','E','F','G','A','H'];
+const NAT_PC  = [0,2,4,5,7,9,11];
+const SHARP_ORDER = [3,0,4,1,5,2,6];      // Fis Cis Gis Dis Ais Eis His
+const FLAT_ORDER  = [6,2,5,1,4,0,3];      // B Es As Des Ges Ces Fes
+const SHARP_POS   = [8,5,9,6,3,7,4];      // 五線上の位置（第1線 E4 = 0）
+const FLAT_POS    = [4,7,3,6,2,5,1];
+
+function noteName(l, acc){
+  if (acc === 0) return LETTERS[l];
+  if (acc === 1) return LETTERS[l] + 'is';
+  if (l === 6) return 'B';
+  if (l === 2) return 'Es';
+  if (l === 5) return 'As';
+  return LETTERS[l] + 'es';
+}
+const pcOf = (l, acc) => (NAT_PC[l] + acc + 12) % 12;
+function accFor(l, pc){ let d = ((pc - NAT_PC[l]) % 12 + 12) % 12; return d > 6 ? d - 12 : d; }
+const mod = (a, n) => ((a % n) + n) % n;
+function display(l, acc, mode){
+  const n = noteName(l, acc);
+  return mode === 'dur' ? n + '-Dur' : n.toLowerCase() + '-moll';
+}
+const canonOf = (l, acc, mode) => noteName(l, acc).toLowerCase() + mode;
+
+function sigNotes(n){
+  const order = n > 0 ? SHARP_ORDER : FLAT_ORDER;
+  return order.slice(0, Math.abs(n));
+}
+function sigText(n){
+  if (n === 0) return '調号なし';
+  const a = n > 0 ? 1 : -1;
+  return (n > 0 ? '♯' : '♭') + ' ' + Math.abs(n) + 'つ（' + sigNotes(n).map(l => noteName(l, a)).join(' ') + '）';
+}
+
+// 30の調（調号 -7〜+7 × 長調・短調）
+const KEYS = [];
+for (let n = -7; n <= 7; n++){
+  const ml = mod(4 * n, 7), mpc = mod(7 * n, 12);
+  for (const mode of ['dur', 'moll']){
+    const l = mode === 'dur' ? ml : mod(ml + 5, 7);
+    const pc = mode === 'dur' ? mpc : mod(mpc + 9, 12);
+    const acc = accFor(l, pc);
+    KEYS.push({ id: 'k' + n + mode, n, mode, l, acc, name: display(l, acc, mode), canon: canonOf(l, acc, mode) });
+  }
+}
+
+// 和音の種類（七の和音などはここに足す）
+const CHORD_TYPES = {
+  dur:  { intervals: [0, 4, 7],
+          roots: [[0,0],[1,-1],[1,0],[2,-1],[2,0],[3,0],[3,1],[4,0],[5,-1],[5,0],[6,-1],[6,0]] },
+  moll: { intervals: [0, 3, 7],
+          roots: [[0,0],[0,1],[1,0],[2,-1],[2,0],[3,0],[3,1],[4,0],[4,1],[5,0],[6,-1],[6,0]] },
+};
+const CHORDS = [];
+for (const type in CHORD_TYPES){
+  const t = CHORD_TYPES[type];
+  for (const [l, acc] of t.roots){
+    const rpc = pcOf(l, acc);
+    const notes = t.intervals.map((iv, i) => {
+      const nl = (l + 2 * i) % 7;
+      return { l: nl, acc: accFor(nl, (rpc + iv) % 12), pos: l - 2 + 2 * i };
+    });
+    CHORDS.push({
+      id: 'c' + noteName(l, acc) + type, l, acc, type,
+      name: display(l, acc, type), canon: canonOf(l, acc, type),
+      notes, pcs: t.intervals.map(iv => (rpc + iv) % 12), semis: t.intervals.map(iv => rpc + iv),
+      noteText: notes.map(n => noteName(n.l, n.acc)).join(' – '),
+    });
+  }
+}
+
+/* ========== 入力の解釈 ========== */
+const ROOT_RE = /^(cis|ces|dis|des|eis|es|fis|fes|gis|ges|ais|as|his|c|d|e|f|g|a|h|b)(dur|moll|mol)$/;
+function parseName(str){
+  let s = str.normalize('NFKC').toLowerCase().replace(/[\s\-‐‑–—ー_.・]/g, '');
+  s = s.replace(/^([a-h])[#♯]/, '$1is')
+       .replace(/^([a-h])♭/, (m, a) => a === 'h' ? 'b' : (a === 'e' || a === 'a') ? a + 's' : a + 'es');
+  const m = s.match(ROOT_RE);
+  if (!m) return null;
+  const mode = m[2] === 'dur' ? 'dur' : 'moll';
+  const pretty = mode === 'dur' ? m[1][0].toUpperCase() + m[1].slice(1) + '-Dur' : m[1] + '-moll';
+  return { canon: m[1] + mode, pretty };
+}
+
+/* ========== 記録（この端末のブラウザに保存） ========== */
+const STORE_KEY = 'tonart-trainer-v1';
+let store = { items: {}, modes: {}, settings: { order: false, mute: false } };
+try {
+  const raw = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+  if (raw && typeof raw === 'object'){
+    store.items = raw.items || {}; store.modes = raw.modes || {};
+    Object.assign(store.settings, raw.settings || {});
+  }
+} catch (e) {}
+function save(){ try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) {} }
+function record(mode, id, ok){
+  const key = mode + ':' + id;
+  const it = store.items[key] || (store.items[key] = { m: 0 });
+  it.m = ok ? Math.max(0, it.m - 1) : it.m + 2;
+  const ms = store.modes[mode] || (store.modes[mode] = { c: 0, t: 0 });
+  ms.t++; if (ok) ms.c++;
+  save();
+}
+function pickSession(mode, pool, n){
+  const items = pool.slice(), out = [];
+  while (out.length < n && items.length){
+    const ws = items.map(it => 1 + ((store.items[mode + ':' + it.id] || {}).m || 0) * 1.5);
+    let r = Math.random() * ws.reduce((a, b) => a + b, 0), i = 0;
+    for (; i < items.length - 1; i++){ r -= ws[i]; if (r < 0) break; }
+    out.push(items.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+/* ========== 音 ========== */
+let actx = null;
+function playNotes(semis, dur){
+  if (store.settings.mute) return;
+  dur = dur || 1.4;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  if (!actx) actx = new AC();
+  if (actx.state === 'suspended') actx.resume();
+  const t = actx.currentTime + 0.02;
+  semis.forEach(s => {
+    const f = 261.626 * Math.pow(2, s / 12);
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(0.25 / Math.sqrt(semis.length), t + 0.015);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    g.connect(actx.destination);
+    [['triangle', 1, 1], ['sine', 2, 0.25]].forEach(([type, mul, vol]) => {
+      const o = actx.createOscillator(), og = actx.createGain();
+      o.type = type; o.frequency.value = f * mul; og.gain.value = vol;
+      o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.05);
+    });
+  });
+}
+
+/* ========== 五線譜 ========== */
+function sharpGlyph(x, y){
+  return `<g stroke="currentColor" fill="none"><path stroke-width="1.1" d="M${x-2.4} ${y-9}V${y+10}M${x+2.4} ${y-10}V${y+9}"/>` +
+         `<path stroke-width="2.8" d="M${x-5.5} ${y-1.8}L${x+5.5} ${y-5}M${x-5.5} ${y+5}L${x+5.5} ${y+1.8}"/></g>`;
+}
+function flatGlyph(x, y){
+  return `<path stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round" d="M${x-3} ${y-17}V${y+5}` +
+         `C${x+1} ${y+3.5} ${x+5} ${y+0.5} ${x+4.5} ${y-3}C${x+4} ${y-6.5} ${x-1} ${y-5.5} ${x-3} ${y-1.5}"/>`;
+}
+const CLEF = '<g transform="translate(6,0)" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">' +
+  '<path d="M22 34C19 30 25 26 28 31C31 37 24 43 17 40C9 36 10 24 18 16C25 9 29 2 27 -8C26 -15 20 -14 19 -6C18 2 22 20 25 44C26 52 20 56 15 52"/>' +
+  '<circle cx="16" cy="51" r="2.6" fill="currentColor" stroke="none"/></g>';
+function staffSVG(opt){
+  const sig = opt.sig || 0, chord = opt.chord || null;
+  const W = chord ? 200 : 170;
+  let s = `<svg class="staff" viewBox="0 -32 ${W} 104" role="img" aria-label="五線譜">`;
+  for (let i = 0; i < 5; i++) s += `<line x1="4" x2="${W-4}" y1="${i*10}" y2="${i*10}" stroke="currentColor" stroke-width="1"/>`;
+  s += CLEF;
+  const posList = sig > 0 ? SHARP_POS : FLAT_POS;
+  for (let i = 0; i < Math.abs(sig); i++){
+    const x = 52 + i * 11.5, y = 40 - posList[i] * 5;
+    s += sig > 0 ? sharpGlyph(x, y) : flatGlyph(x, y);
+  }
+  if (chord){
+    const cx = 132; let col = 0;
+    if (chord.notes[0].pos <= -2) s += `<line x1="${cx-13}" x2="${cx+13}" y1="50" y2="50" stroke="currentColor" stroke-width="1"/>`;
+    chord.notes.slice().reverse().forEach(n => {
+      const y = 40 - n.pos * 5;
+      s += `<ellipse cx="${cx}" cy="${y}" rx="7.6" ry="5" fill="currentColor"/>` +
+           `<ellipse cx="${cx}" cy="${y}" rx="3.4" ry="4.3" fill="var(--card)" transform="rotate(-28 ${cx} ${y})"/>`;
+      if (n.acc){
+        const x = cx - 18 - col * 12; col++;
+        s += n.acc > 0 ? sharpGlyph(x, y) : flatGlyph(x, y);
+      }
+    });
+  }
+  return s + '</svg>';
+}
+
+/* ========== 画面 ========== */
+const app = document.getElementById('app');
+const $ = sel => app.querySelector(sel);
+let session = null, current = null;
+
+const MODES = {
+  sig2key:   { tag: '調 ①', title: '調号 → 調', desc: '♯・♭の数を見て調名を答える', pool: KEYS,
+               answerText: q => sigText(q.n) + ' の' + (q.mode === 'dur' ? '長調' : '短調') + ' → ' + q.name },
+  key2sig:   { tag: '調 ②', title: '調 → 調号', desc: '調名を見て♯・♭の数と音を答える', pool: KEYS,
+               answerText: q => q.name + ' → ' + sigText(q.n) },
+  chord2notes:{ tag: '和音 ③', title: 'コード → 構成音', desc: 'コード名を見て鍵盤で構成音をタップ', pool: CHORDS,
+               answerText: q => q.name + ' → ' + q.noteText },
+  notes2chord:{ tag: '和音 ④', title: '構成音 → コード', desc: '五線譜の和音を見てコード名を答える', pool: CHORDS,
+               answerText: q => q.noteText + ' → ' + q.name },
+};
+
+function renderHome(){
+  session = null; current = null;
+  let h = '<p class="sub">練習したいものを選んでください。1回10問です。</p><div class="modes">';
+  for (const k in MODES){
+    const m = MODES[k], st = store.modes[k];
+    const acc = st && st.t ? `正答率 ${Math.round(st.c / st.t * 100)}%（${st.t}問）` : 'まだ記録なし';
+    h += `<button class="mode" data-mode="${k}"><span class="tag">${m.tag}</span><h2>${m.title}</h2><p class="sub">${m.desc}</p><div class="acc">${acc}</div></button>`;
+  }
+  h += `</div>
+  <h3 class="sec">設定</h3>
+  <div class="card">
+    <label class="opt"><input type="checkbox" id="order" ${store.settings.order ? 'checked' : ''}>
+      <span>調②で、♯・♭が付く順番もチェックする<br><span class="sub">例：♯3つなら Fis → Cis → Gis の順にタップ</span></span></label>
+  </div>
+  <p class="sub" style="margin-top:14px">表記はドイツ式です（H＝シ、B＝シ♭）。記録はこの端末のブラウザに保存され、まちがえた問題は多めに出題されます。</p>
+  <button class="ghost" id="reset">記録をリセット</button>`;
+  app.innerHTML = h;
+  app.querySelectorAll('.mode').forEach(b => b.onclick = () => startSession(b.dataset.mode));
+  $('#order').onchange = e => { store.settings.order = e.target.checked; save(); };
+  $('#reset').onclick = () => {
+    if (confirm('これまでの記録をすべて消します。よろしいですか？')){ store.items = {}; store.modes = {}; save(); renderHome(); }
+  };
+}
+
+function startSession(mode){
+  session = { mode, queue: pickSession(mode, MODES[mode].pool, 10), idx: 0, correct: 0, misses: [], answered: false };
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const s = session, q = s.queue[s.idx];
+  s.answered = false;
+  app.innerHTML = `
+    <div class="bar"><button class="link" id="quit">← やめる</button><span class="sub">${MODES[s.mode].title}</span><span class="prog">${s.idx + 1} / ${s.queue.length}</span></div>
+    <div class="progress"><i style="width:${s.idx / s.queue.length * 100}%"></i></div>
+    <section class="card q" id="q"></section>
+    <section class="card" id="a"></section>
+    <div id="fb" class="fb" hidden></div>
+    <button id="go" class="primary">答える</button>`;
+  $('#quit').onclick = renderHome;
+  $('#go').onclick = submit;
+  MOUNT[s.mode](q);
+  window.scrollTo(0, 0);
+}
+
+function submit(){
+  const s = session;
+  if (!s) return;
+  if (s.answered){
+    s.idx++;
+    if (s.idx >= s.queue.length) renderResult(); else renderQuestion();
+    return;
+  }
+  const r = current.check();
+  if (!r) return;
+  const q = s.queue[s.idx];
+  s.answered = true;
+  record(s.mode, q.id, r.ok);
+  if (r.ok) s.correct++; else s.misses.push(q);
+  $('#a').classList.add('locked');
+  const hint = $('#hint'); if (hint) hint.textContent = '';
+  const fb = $('#fb');
+  fb.hidden = false; fb.className = 'fb ' + (r.ok ? 'ok' : 'ng');
+  fb.innerHTML = `<div class="mark">${r.ok ? '○ 正解' : '× ざんねん'}</div>` + r.html;
+  if (r.after) r.after(fb);
+  const go = $('#go');
+  go.textContent = s.idx + 1 >= s.queue.length ? '結果を見る' : '次へ';
+  go.focus();
+}
+
+function renderResult(){
+  const s = session, n = s.queue.length;
+  const msg = s.correct === n ? '全問正解です！' : s.correct >= n * 0.8 ? 'あと少しです。' : 'くり返すと定着します。';
+  let h = `<div class="card"><p class="sub" style="text-align:center;margin:0">${MODES[s.mode].title}</p>
+    <div class="score">${s.correct}<small> / ${n}</small></div><p style="text-align:center;margin:4px 0 0">${msg}</p>`;
+  if (s.misses.length){
+    h += '<h3 class="sec">まちがえた問題</h3><ul class="miss">' +
+      s.misses.map(q => `<li>${MODES[s.mode].answerText(q)}</li>`).join('') + '</ul>';
+  }
+  h += `</div><button class="primary" id="again">もう一度</button><button class="secondary" id="home">ホームへ</button>`;
+  app.innerHTML = h;
+  const mode = s.mode;
+  session = null; current = null;
+  $('#again').onclick = () => startSession(mode);
+  $('#home').onclick = renderHome;
+  $('#again').focus();
+}
+
+/* ---------- 調名・コード名の入力パッド ---------- */
+function mountNamePad(){
+  $('#a').innerHTML = `
+    <input id="ans" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="例：Fis-moll" aria-label="答え">
+    <div class="row" data-g="l">${LETTERS.map((L, i) => `<button data-v="${i}">${L}</button>`).join('')}</div>
+    <div class="row" data-g="acc"><button data-v="0">♮ なし</button><button data-v="1">♯ -is</button><button data-v="-1">♭ -es</button></div>
+    <div class="row" data-g="mode"><button data-v="dur">Dur</button><button data-v="moll">moll</button></div>
+    <p class="hint" id="hint"></p>`;
+  const inp = $('#ans');
+  const sel = { l: null, acc: 0, mode: null };
+  const paint = () => {
+    app.querySelectorAll('#a .row').forEach(row => {
+      const g = row.dataset.g;
+      row.querySelectorAll('button').forEach(b => b.classList.toggle('on', sel.l !== null && String(sel[g]) === b.dataset.v));
+    });
+  };
+  app.querySelectorAll('#a .row button').forEach(b => b.onclick = () => {
+    const g = b.parentNode.dataset.g, v = b.dataset.v;
+    if (g === 'l') sel.l = +v; else if (g === 'acc') sel.acc = +v; else sel.mode = v;
+    if (sel.l === null) sel.l = 0;
+    const n = noteName(sel.l, sel.acc);
+    inp.value = sel.mode === 'dur' ? n + '-Dur' : sel.mode === 'moll' ? n.toLowerCase() + '-moll' : n;
+    paint(); $('#hint').textContent = '';
+  });
+  inp.oninput = () => { sel.l = null; sel.acc = 0; sel.mode = null; paint(); $('#hint').textContent = ''; };
+  if (window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches) inp.focus();
+  return () => {
+    const p = parseName(inp.value);
+    if (!p) $('#hint').textContent = 'Fis-moll のように、音名と Dur / moll を入力してください';
+    return p;
+  };
+}
+
+const MOUNT = {
+  sig2key(q){
+    $('#q').innerHTML = staffSVG({ sig: q.n }) +
+      `<p class="ask">この調号の<b>${q.mode === 'dur' ? '長調' : '短調'}</b>は？</p>`;
+    const read = mountNamePad();
+    current = { check(){
+      const p = read(); if (!p) return null;
+      const ok = p.canon === q.canon;
+      const pair = KEYS.find(k => k.n === q.n && k.mode !== q.mode);
+      return { ok, html: (ok ? '' : `<p>あなたの答え：${p.pretty}</p>`) +
+        `<p>正解：<b>${q.name}</b></p><p class="sub">${sigText(q.n)}／${pair.mode === 'dur' ? '長調' : '短調'}は ${pair.name}</p>` };
+    } };
+  },
+
+  key2sig(q){
+    $('#q').innerHTML = `<div class="big">${q.name}</div><p class="ask">の調号は？</p>`;
+    const orderMode = store.settings.order;
+    $('#a').innerHTML = `
+      <div class="rowlabel">種類</div>
+      <div class="row" id="types"><button data-v="1">♯</button><button data-v="-1">♭</button><button data-v="0">なし</button></div>
+      <div class="rowlabel">付く音${orderMode ? '（付く順番にタップ）' : ''}</div>
+      <div class="row" id="notes">${LETTERS.map((L, i) => `<button data-v="${i}" disabled>${L}</button>`).join('')}</div>
+      <p class="count" id="count"></p><p class="hint" id="hint"></p>`;
+    const sel = { type: null, notes: [] };
+    const paint = () => {
+      app.querySelectorAll('#types button').forEach(b => b.classList.toggle('on', sel.type !== null && +b.dataset.v === sel.type));
+      app.querySelectorAll('#notes button').forEach(b => {
+        const l = +b.dataset.v, i = sel.notes.indexOf(l);
+        b.disabled = !sel.type;
+        b.classList.toggle('on', i >= 0);
+        b.innerHTML = (sel.type ? noteName(l, sel.type) : LETTERS[l]) + (orderMode && i >= 0 ? `<span class="ord">${i + 1}</span>` : '');
+      });
+      $('#count').textContent = sel.type === null ? '' : sel.type === 0 ? '調号なし' : (sel.type > 0 ? '♯' : '♭') + ' × ' + sel.notes.length;
+      $('#hint').textContent = '';
+    };
+    app.querySelectorAll('#types button').forEach(b => b.onclick = () => {
+      sel.type = +b.dataset.v; if (sel.type === 0) sel.notes = []; paint();
+    });
+    app.querySelectorAll('#notes button').forEach(b => b.onclick = () => {
+      const l = +b.dataset.v, i = sel.notes.indexOf(l);
+      if (i >= 0) sel.notes.splice(i, 1); else sel.notes.push(l);
+      paint();
+    });
+    current = { check(){
+      if (sel.type === null){ $('#hint').textContent = '♯・♭・なし のどれかを選んでください'; return null; }
+      const want = sigNotes(q.n), type = Math.sign(q.n);
+      let ok = sel.type === type && sel.notes.length === want.length;
+      if (ok) ok = orderMode ? want.every((l, i) => sel.notes[i] === l) : want.every(l => sel.notes.includes(l));
+      return { ok, html: `<p>正解：<b>${sigText(q.n)}</b></p>` + staffSVG({ sig: q.n }) };
+    } };
+  },
+
+  chord2notes(q){
+    $('#q').innerHTML = `<div class="big">${q.name}</div><p class="ask">の構成音を鍵盤でタップ</p>`;
+    const whites = [0,2,4,5,7,9,11,12,14,16,17,19];
+    const blacks = [[1,0],[3,1],[6,3],[8,4],[10,5],[13,7],[15,8],[18,10]];
+    $('#a').innerHTML = '<div class="piano">' +
+      whites.map(s => `<button class="wk" data-s="${s}" aria-label="白鍵">${s % 12 === 0 ? '<span>C</span>' : ''}</button>`).join('') +
+      blacks.map(([s, w]) => `<button class="bk" data-s="${s}" style="left:${(w + 1) / 12 * 100}%" aria-label="黒鍵"></button>`).join('') +
+      '</div><p class="count" id="count"></p><p class="hint" id="hint"></p>';
+    const sel = new Set();
+    const keys = app.querySelectorAll('.piano button');
+    const paint = () => {
+      keys.forEach(k => k.classList.toggle('sel', sel.has(+k.dataset.s)));
+      $('#count').textContent = sel.size + ' / 3 音';
+      $('#hint').textContent = '';
+    };
+    keys.forEach(k => k.onclick = () => {
+      const s = +k.dataset.s;
+      if (sel.has(s)) sel.delete(s); else { sel.add(s); playNotes([s], 0.7); }
+      paint();
+    });
+    paint();
+    current = { check(){
+      if (sel.size !== 3){ $('#hint').textContent = '音を3つ選んでください'; return null; }
+      const pcs = new Set([...sel].map(s => s % 12));
+      const ok = pcs.size === 3 && q.pcs.every(p => pcs.has(p));
+      return { ok, html: `<p>${q.name}：<b>${q.noteText}</b></p><button class="ghost" id="hear">🔊 和音を聴く</button>`,
+        after(fb){
+          keys.forEach(k => {
+            const s = +k.dataset.s;
+            k.classList.remove('sel');
+            if (sel.has(s) && !q.pcs.includes(s % 12)) k.classList.add('bad');
+            if (ok ? sel.has(s) : q.semis.includes(s)) k.classList.add('good');
+          });
+          const chordSemis = ok ? [...sel] : q.semis;
+          fb.querySelector('#hear').onclick = () => playNotes(chordSemis);
+          fb.style.pointerEvents = 'auto';
+          if (ok) playNotes(chordSemis);
+        } };
+    } };
+  },
+
+  notes2chord(q){
+    $('#q').innerHTML = staffSVG({ chord: q }) + '<p class="ask">この和音のコード名は？</p>';
+    const read = mountNamePad();
+    current = { check(){
+      const p = read(); if (!p) return null;
+      const ok = p.canon === q.canon;
+      return { ok, html: (ok ? '' : `<p>あなたの答え：${p.pretty}</p>`) +
+        `<p>正解：<b>${q.name}</b>（${q.noteText}）</p><button class="ghost" id="hear">🔊 和音を聴く</button>`,
+        after(fb){ fb.querySelector('#hear').onclick = () => playNotes(q.semis); if (ok) playNotes(q.semis); } };
+    } };
+  },
+};
+
+/* ---------- 共通 ---------- */
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !session || e.isComposing) return;
+  if (e.target.tagName === 'BUTTON') return;   // ボタン上の Enter はそのボタンのクリックになる
+  e.preventDefault(); submit();
+});
+const muteBtn = document.getElementById('mute');
+function paintMute(){
+  muteBtn.textContent = store.settings.mute ? '音 オフ' : '音 オン';
+  muteBtn.setAttribute('aria-pressed', String(!store.settings.mute));
+}
+muteBtn.onclick = () => { store.settings.mute = !store.settings.mute; save(); paintMute(); };
+paintMute();
+renderHome();
+</script>
+</body>
+</html>
